@@ -31,7 +31,7 @@ public class InteractiveFiction {
                 try {
                     player.handleInput(action);
                 } catch (Exception e) {
-                    System.out.println("no verb executed");
+                    System.out.println(e);
                 }
             }
 
@@ -99,10 +99,22 @@ public class InteractiveFiction {
         Player player = new Player(rooms[0], "You are such a player.", 10);
 
         Item knife = new Item(new String[]{"knife"}, "This steak knife is a sharp example object.", 0);
+        knife.deadly = true;
+        kitchen.addToContents(knife);
+
+        Item bag = new Item(new String[]{"bag"}, "This is a normal bag.", 10);
+        bag.container = true;
+        bag.open = true;
+        kitchen.addToContents(bag);
+
+        Item spoon = new Item(new String[]{"spoon"}, "This is a soup spoon. Don't use it for the wrong course.", 0);
+        bag.addToContents(spoon);
 
         Thing[] items = new Thing[] {
             player,
             knife,
+            spoon,
+            bag,
         };
 
         Parser parser = new Parser(rooms, items, verbs);
