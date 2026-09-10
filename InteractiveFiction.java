@@ -24,7 +24,7 @@ public class InteractiveFiction {
 
         while (true) {
 
-            ans = console.readLine(">>> ");
+            ans = console.readLine("\n>>> ");
             action = parser.parse(ans);
 
             if (action != null) {
@@ -77,6 +77,8 @@ public class InteractiveFiction {
             new Verb(new String[]{"throw", "chuck", "fling", "toss", "hurl"}, true, true, true, true, false, new String[]{"at", "towards"}),
             new Verb(new String[]{"smell", "sniff"}, true, false, true, false, true, new String[]{}),
             new Verb(new String[]{"eat"}, true, false, true, false, true, new String[]{}),
+            new Verb(new String[]{"open"}, true, false, true, false, true, new String[]{}),
+            new Verb(new String[]{"close"}, true, false, true, false, true, new String[]{}),
         };
 
 
@@ -100,7 +102,6 @@ public class InteractiveFiction {
 
         Item knife = new Item(new String[]{"knife"}, "This steak knife is a sharp example object.", 0);
         knife.deadly = true;
-        kitchen.addToContents(knife);
 
         Item bag = new Item(new String[]{"bag"}, "This is a normal bag.", 10);
         bag.container = true;
@@ -108,7 +109,11 @@ public class InteractiveFiction {
         kitchen.addToContents(bag);
 
         Item spoon = new Item(new String[]{"spoon"}, "This is a soup spoon. Don't use it for the wrong course.", 0);
-        bag.addToContents(spoon);
+        dining.addToContents(spoon);
+
+        player.addToContents(knife);
+
+        // kitchen.addToContents(player);
 
         Thing[] items = new Thing[] {
             player,
@@ -119,6 +124,9 @@ public class InteractiveFiction {
 
         Parser parser = new Parser(rooms, items, verbs);
 
-        return new Game(verbs, items, rooms, parser, player);
+        Game game = new Game(verbs, items, rooms, parser, player);
+
+        player.game = game;
+        return game;
     }
 }

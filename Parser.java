@@ -33,7 +33,7 @@ public class Parser {
         }
 
         if (Objects.equals(input, "")) {
-            System.out.println("Pardon?");
+            System.out.println("I beg your pardon?");
             return null;
         }
 
@@ -75,7 +75,7 @@ public class Parser {
                 }
             }
 
-            String goResponse = this.console.readLine("Which way do you want to go?\n>>> ");
+            String goResponse = this.console.readLine("Which way do you want to go?\n\n>>> ");
             String[] goResponseList = cleanInput(goResponse);
             verbIndex = checkVerb(goResponseList);
             if (verbIndex == null) {
@@ -116,7 +116,7 @@ public class Parser {
             if (!verb.needsDirect) {
                 return new Action(verb, null, null);
             }
-            String directResponse = this.console.readLine("What do you want to " + verb.names[verbIndex[1]] + "?\n>>> ");
+            String directResponse = this.console.readLine("What do you want to " + verb.names[verbIndex[1]] + "?\n\n>>> ");
             String[] directResponseList = cleanInput(directResponse);
             directs = checkDirect(directResponseList);
             if (directs.length == 0) {
@@ -140,7 +140,7 @@ public class Parser {
             return new Action(verb, directs, indirect);
         }
 
-        String indirectResponse = this.console.readLine("What do you want to " + verb.names[verbIndex[1]] + " the " + directs[0].names[0] + " " + verb.indirectIndicator[0] + "?\n>>> ");
+        String indirectResponse = this.console.readLine("What do you want to " + verb.names[verbIndex[1]] + " the " + directs[0].names[0] + " " + verb.indirectIndicator[0] + "?\n\n>>> ");
         String[] indirectResponseList = cleanInput(indirectResponse);
         indirect = checkDirect(indirectResponseList)[0];
 
