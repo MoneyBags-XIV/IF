@@ -119,6 +119,34 @@ public class Thing {
     public String toString() {
         return this.names[0];
     }
+
+    public String getTaken(Player player) {
+        player.game.free(this);
+        player.addToContents(this);
+        return "Taken.";
+    }
+
+    public String getDropped(Player player, Thing indirect) {
+        if (indirect == null) {
+            player.game.free(this);
+            player.location.addToContents(this);
+            return "Dropped.";
+        }
+
+        player.game.free(this);
+        indirect.addToContents(this);
+        return "Ok, the " + this.names[0] + " is now in the " + indirect.names[0] + ".";
+    }
+
+    public String getOpened() {
+        this.open = true;
+        return "Ok, the " + this.names[0] + " is now open.";
+    }
+
+    public String getClosed() {
+        this.open = false;
+        return "Ok, the " + this.names[0] + " is now closed.";
+    }
 }
 
 
@@ -147,6 +175,104 @@ class Room extends Thing {
     @Override
     public String toString() {
         return "\u001B[1m" + this.names[0] + "\u001B[22m" + '\n' + this.description;
+    }
+
+    // I know there's probably a better way to do this, but I don't have the energy to figure it out
+    public String north (Player player) {
+        if (this.n != null) {
+            player.location = this.n;
+            player.look(null, null);
+            return "";
+        }
+        return "You can't go that way!\n";
+    }
+    public String south(Player player) {
+        if (this.s != null) {
+            player.location = this.s;
+            player.look(null, null);
+            return "";
+        }
+        return "You can't go that way!\n";
+    }
+    public String east(Player player) {
+        if (this.e != null) {
+            player.location = this.e;
+            player.look(null, null);
+            return "";
+        }
+        return "You can't go that way!\n";
+    }
+    public String west(Player player) {
+        if (this.w != null) {
+            player.location = this.w;
+            player.look(null, null);
+            return "";
+        }
+        return "You can't go that way!\n";
+    }
+    public String northeast(Player player) {
+        if (this.ne != null) {
+            player.location = this.ne;
+            player.look(null, null);
+            return "";
+        }
+        return "You can't go that way!\n";
+    }
+    public String southeast(Player player) {
+        if (this.se != null) {
+            player.location = this.se;
+            player.look(null, null);
+            return "";
+        }
+        return "You can't go that way!\n";
+    }
+    public String southwest(Player player) {
+        if (this.sw != null) {
+            player.location = this.sw;
+            player.look(null, null);
+            return "";
+        }
+        return "You can't go that way!\n";
+    }
+    public String northwest(Player player) {
+        if (this.nw != null) {
+            player.location = this.nw;
+            player.look(null, null);
+            return "";
+        }
+        return "You can't go that way!\n";
+    }
+    public String up(Player player) {
+        if (this.u != null) {
+            player.location = this.u;
+            player.look(null, null);
+            return "";
+        }
+        return "You can't go that way!\n";
+    }
+    public String down(Player player) {
+        if (this.d != null) {
+            player.location = this.d;
+            player.look(null, null);
+            return "";
+        }
+        return "You can't go that way!\n";
+    }
+    public String in(Player player) {
+        if (this.i != null) {
+            player.location = this.i;
+            player.look(null, null);
+            return "";
+        }
+        return "You can't go that way!\n";
+    }
+    public String out(Player player) {
+        if (this.o != null) {
+            player.location = this.o;
+            player.look(null, null);
+            return "";
+        }
+        return "You can't go that way!\n";
     }
 }
 
@@ -283,14 +409,14 @@ class Player extends Thing {
         }
         if (this.holding(direct)) {
             System.out.println("You are already holding the " + direct.names[0] + ".");
-        }
-        if (direct.takeable) {
-            this.game.free(direct);
-            this.addToContents(direct);
-            System.out.println("Taken.");
             return;
         }
-        System.out.println("Good luck with that!");
+        if (!direct.takeable) {
+            System.out.println("Good luck with that!");
+            return;
+        }
+        System.out.println(direct.getTaken(this));  // This uses getter/setter style logic to make overriding easier for custom take behavior.
+        return;
     }
 
     public void drop(Thing direct, Thing indirect) {
@@ -299,9 +425,7 @@ class Player extends Thing {
             return;
         }
         if (indirect == null) {
-            this.game.free(direct);
-            this.location.addToContents(direct);
-            System.out.println("Dropped.");
+            System.out.println(direct.getDropped(this, null));
             return;
         }
         if (indirect == direct) {
@@ -320,9 +444,7 @@ class Player extends Thing {
             System.out.println("The " + indirect.names[0] + " is full.");
             return;
         }
-        this.game.free(direct);
-        indirect.addToContents(direct);
-        System.out.println("Ok, the " + direct.names[0] + " is now in the " + indirect.names[0] + ".");
+        System.out.println(direct.getDropped(this, indirect));
     }
 
     public void open(Thing direct, Thing indirect) {
@@ -334,8 +456,7 @@ class Player extends Thing {
             System.out.println("The " + direct.names[0] + " is already open.");
             return;
         }
-        direct.open = true;
-        System.out.println("Ok, the " + direct.names[0] + " is now open.");
+        System.out.println(direct.getOpened());
     }
 
     public void close(Thing direct, Thing indirect) {
@@ -347,9 +468,25 @@ class Player extends Thing {
             System.out.println("The " + direct.names[0] + " is already closed.");
             return;
         }
-        direct.open = false;
-        System.out.println("Ok, the " + direct.names[0] + " is now closed.");
+        System.out.println(direct.getClosed());
     }
+
+    public void hit(Thing direct, Thing indirect) {
+
+    }
+
+    public void north (Thing direct, Thing indirect) {System.out.print(this.location.north(this));}
+    public void south(Thing direct, Thing indirect) {System.out.print(this.location.south(this));}
+    public void east(Thing direct, Thing indirect) {System.out.print(this.location.east(this));}
+    public void west(Thing direct, Thing indirect) {System.out.print(this.location.west(this));}
+    public void northeast(Thing direct, Thing indirect) {System.out.print(this.location.northeast(this));}
+    public void southeast(Thing direct, Thing indirect) {System.out.print(this.location.southeast(this));}
+    public void southwest(Thing direct, Thing indirect) {System.out.print(this.location.southwest(this));}
+    public void northwest(Thing direct, Thing indirect) {System.out.print(this.location.northwest(this));}
+    public void up(Thing direct, Thing indirect) {System.out.print(this.location.up(this));}
+    public void down(Thing direct, Thing indirect) {System.out.print(this.location.down(this));}
+    public void in(Thing direct, Thing indirect) {System.out.print(this.location.in(this));}
+    public void out(Thing direct, Thing indirect) {System.out.print(this.location.out(this));}
 }
 
 
