@@ -19,6 +19,8 @@ public class Thing {
     boolean silent;
     boolean takeable;
 
+    Thing[] keepTrackOf;
+
     public void doTurn() {
         for (int i=0; i<this.capacity; i++) {
             if (this.contents[i] != null) {
@@ -52,6 +54,15 @@ public class Thing {
             }
         }
         return true;
+    }
+
+    public boolean contains(Thing target) {
+        for (int i=0; i<this.contents.length; i++) {
+            if (this.contents[i] == target) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public boolean hasRoom() {
@@ -146,6 +157,10 @@ public class Thing {
     public String getClosed() {
         this.open = false;
         return "Ok, the " + this.names[0] + " is now closed.";
+    }
+
+    public String getHit(Thing indirect) {
+        return "Violence isn't the anwser.";
     }
 }
 
@@ -472,7 +487,23 @@ class Player extends Thing {
     }
 
     public void hit(Thing direct, Thing indirect) {
+        if (!this.contains(indirect)) {
+            System.out.println("You're not holding the " + indirect.names[0] + "!");
+            return;
+        }
+        System.out.println(direct.getHit(indirect));
+    }
 
+    public void throw(Thing direct, Thing indirect) {
+        if (!this.contains(direct)) {
+            System.out.println("You're not holding the " + direct.names[0] + "!");
+            return;
+        }
+        if (!this.canAccess(indirect)) {
+            System.out.println("You can't see any " + indirect.names[0] + " here!");
+            return;
+        }
+        System.out.println(indirect.getThrownAt(direct));
     }
 
     public void north (Thing direct, Thing indirect) {System.out.print(this.location.north(this));}

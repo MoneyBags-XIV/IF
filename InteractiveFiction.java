@@ -84,8 +84,16 @@ public class InteractiveFiction {
 
         //==============================ROOMS==============================
 
-        Room kitchen = new Room(new String[]{"Kitchen", "kitchen"}, "There are too many cooks here.", 20);
-        Room dining = new Room(new String[]{"Dining Room", "dining"}, "Fine dining here.", 20);
+        Room kitchen = new Room(new String[]{"Kitchen", "kitchen"}, "There are too many cooks here. Through a doorway to the north, you can see the Dining Room.", 20) {
+            @Override
+            public String north(Player player) {
+                if (!player.contains(this.keepTrackOf[0])) {
+                    return "You can't go into the Dining Room unless you are holding a knife.\n";
+                }
+                return super.north(player);
+            }
+        };
+        Room dining = new Room(new String[]{"Dining Room", "dining"}, "Fine dining here. A doorway to the south leads back to the Kitchen.", 20);
 
         kitchen.n = dining;
         dining.s = kitchen;
@@ -98,10 +106,22 @@ public class InteractiveFiction {
 
         //==============================ITEMS==============================
         
-        Player player = new Player(rooms[0], "You are such a player.", 10);
+        Player player = new Player(rooms[0], "You are such a player.", 10){
+            @Override
+            public String getHit(Thing indirect) {
+                if (!indirect.deadly) {
+                    return "The " + indirect.names[0] + " isn't deadly enough to do any damage.";
+                }
+                System.out.println("Well, if you insist...\nYOU HAVE DIED");
+                System.exit(0);
+                return "";
+            }
+        };
 
         Item knife = new Item(new String[]{"knife"}, "This steak knife is a sharp example object.", 0);
         knife.deadly = true;
+
+        kitchen.keepTrackOf = new Thing[]{knife};
 
         Item bag = new Item(new String[]{"bag"}, "This is a normal bag.", 10);
         bag.container = true;
@@ -111,7 +131,7 @@ public class InteractiveFiction {
         Item spoon = new Item(new String[]{"spoon"}, "This is a soup spoon. Don't use it for the wrong course.", 0);
         dining.addToContents(spoon);
 
-        player.addToContents(knife);
+        kitchen.addToContents(knife);
 
         // kitchen.addToContents(player);
 
