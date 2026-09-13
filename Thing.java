@@ -162,6 +162,12 @@ public class Thing {
     public String getHit(Thing indirect) {
         return "Violence isn't the anwser.";
     }
+
+    public String getThrownAt(Player player, Thing direct) {
+        player.game.free(direct);
+        player.location.addToContents(direct);
+        return "The " + direct + " flies past the " + this.names[0] + ", and clatters to the ground.";
+    }
 }
 
 
@@ -494,7 +500,7 @@ class Player extends Thing {
         System.out.println(direct.getHit(indirect));
     }
 
-    public void throw(Thing direct, Thing indirect) {
+    public void chuck(Thing direct, Thing indirect) {
         if (!this.contains(direct)) {
             System.out.println("You're not holding the " + direct.names[0] + "!");
             return;
@@ -503,7 +509,7 @@ class Player extends Thing {
             System.out.println("You can't see any " + indirect.names[0] + " here!");
             return;
         }
-        System.out.println(indirect.getThrownAt(direct));
+        System.out.println(indirect.getThrownAt(this, direct));
     }
 
     public void north (Thing direct, Thing indirect) {System.out.print(this.location.north(this));}

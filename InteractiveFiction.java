@@ -74,7 +74,7 @@ public class InteractiveFiction {
             new Verb(new String[]{"take", "pick", "pickup", "grab", "hold", "keep"}, true, false, true, false, true, new String[]{}),
             new Verb(new String[]{"drop", "leave", "set", "put", "place", "store"}, true, false, true, true, true, new String[]{"in", "inside", "into"}),
             new Verb(new String[]{"hit", "kill", "attack", "cut"}, true, true, true, true, false, new String[]{"with", "use", "using"}),
-            new Verb(new String[]{"throw", "chuck", "fling", "toss", "hurl"}, true, true, true, true, false, new String[]{"at", "towards"}),
+            new Verb(new String[]{"chuck", "throw", "fling", "toss", "hurl"}, true, true, true, true, false, new String[]{"at", "towards"}),
             new Verb(new String[]{"smell", "sniff"}, true, false, true, false, true, new String[]{}),
             new Verb(new String[]{"eat"}, true, false, true, false, true, new String[]{}),
             new Verb(new String[]{"open"}, true, false, true, false, true, new String[]{}),
