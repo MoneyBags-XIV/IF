@@ -11,10 +11,6 @@ public class Thing {
 
     boolean container;
     boolean open;
-    boolean lockable;
-    boolean locked;
-    boolean edible;
-    boolean drinkable;
     boolean deadly;
     boolean silent;
     boolean takeable;
@@ -168,6 +164,54 @@ public class Thing {
         player.location.addToContents(direct);
         return "The " + direct + " flies past the " + this.names[0] + ", and clatters to the ground.";
     }
+
+    public String getSmelled() {
+        return "The " + this.names[0] + " smells just as you would expect.";
+    }
+
+    public String getEaten() {
+        return "I don't think the " + this.names[0] + " would agree with you.";
+    }
+
+    public String getDrank() {
+        return "The " + this.names[0] + " isn't really the sort of thing that you drink.";
+    }
+
+    public String getRead() {
+        return "The " + this.names[0] + " doesn't have any wisdom for you.";
+    }
+
+    public String getKissed() {
+        return "Mwah!";
+    }
+
+    public String getHugged() {
+        return "The " + this.names[0] + " feels your affection.";
+    }
+
+    public String getListened() {
+        return "The " + this.names[0] + " isn't making any noise.";
+    }
+
+    public String getSorried() {
+        return "I'm sure the " + this.names[0] + " forgives you.";
+    }
+
+    public String getTasted() {
+        return "The " + this.names[0] + " tastes about how you'd expect.";
+    }
+
+    public String getTouched() {
+        return "The " + this.names[0] + " feels about how you'd expect.";
+    }
+
+    public String getLocked(Thing locker) {
+        return "The " + this.names[0] + " can't be locked.";
+    }
+
+    public String getUnlocked(Thing unlocker) {
+        return "The " + this.names[0] + " can't be unlocked";
+    }
 }
 
 
@@ -308,10 +352,6 @@ class Item extends Thing {
         
         this.container = false;
         this.open = false;
-        this.lockable = false;
-        this.locked = false;
-        this.edible = false;
-        this.drinkable = false;
         this.deadly = false;
         this.silent = false;
         this.takeable = true;
@@ -389,6 +429,10 @@ class Player extends Thing {
             }
         }
         return false;
+    }
+
+    public void hello(Thing direct, Thing indirect) {
+        System.out.println("Hello!");
     }
 
     public void look(Thing direct, Thing indirect) {
@@ -509,7 +553,95 @@ class Player extends Thing {
             System.out.println("You can't see any " + indirect.names[0] + " here!");
             return;
         }
+        if (direct == indirect) {
+            System.out.println("Don't be silly.");
+            return;
+        }
         System.out.println(indirect.getThrownAt(this, direct));
+    }
+
+    public void smell(Thing direct, Thing indirect) {
+        System.out.println(direct.getSmelled());
+    }
+
+    public void eat(Thing direct, Thing indirect) {
+        if (!this.contains(direct)) {
+            System.out.println("You're not holding the " + direct.names[0] + "!");
+            return;
+        }
+        System.out.println(direct.getEaten());
+    }
+
+    public void drink(Thing direct, Thing indirect) {
+        if (!this.contains(direct)) {
+            System.out.println("You're not holding the " + direct.names[0] + "!");
+            return;
+        }
+        System.out.println(direct.getDrank());
+    }
+
+    public void read(Thing direct, Thing indirect) {
+        System.out.println(direct.getRead());
+    }
+
+    public void jump(Thing direct, Thing indirect) {
+        // if (direct == null) {
+            System.out.println("Weeee!");
+            // return;
+        // }
+        // System.out.prinln(direct.getJumped());
+    }
+
+    public void kiss(Thing direct, Thing indirect) {
+        System.out.println(direct.getKissed());
+    }
+
+    public void hug(Thing direct, Thing indirect) {
+        System.out.println(direct.getHugged());
+    }
+
+    public void listen(Thing direct, Thing indirect) {
+        if (direct == null) {
+            System.out.println(this.location.getListened());
+            return;
+        }
+        System.out.println(direct.getListened());
+    }
+
+    public void sing(Thing direct, Thing indirect) {
+        System.out.println("You're in fine voice today!");
+    }
+
+    public void sleep(Thing direct, Thing indirect) {
+        System.out.println("Zzzzzzzz...");
+    }
+
+    public void sorry(Thing direct, Thing indirect) {
+        if (direct == null) {
+            System.out.println("I forgive you.");
+            return;
+        }
+        System.out.println(direct.getSorried());
+    }
+
+    public void shout(Thing direct, Thing indirect) {
+        System.out.println("Aaaarrrrgggghhhh!");
+    }
+
+    public void taste(Thing direct, Thing indirect) {
+        System.out.println(direct.getTasted());
+    }
+
+    public void touch(Thing direct, Thing indirect) {
+        System.out.println(direct.getTouched());
+    }
+
+    public void lock(Thing direct, Thing indirect) {
+        System.out.println(direct.getLocked(indirect));
+    }
+
+    public void unlock(Thing direct, Thing indirect) {
+        System.out.println(direct.getUnlocked(indirect));
     }
 
     public void north (Thing direct, Thing indirect) {System.out.print(this.location.north(this));}
@@ -551,14 +683,14 @@ class Verb {
     boolean acceptsMultipleDirect;
     String[] indirectIndicator;
 
-    public Verb(String[] names, boolean needsDirect, boolean needsIndirect, boolean acceptsDirect, boolean acceptsIndirect, boolean acceptsMultipleDirect, String[] indirectIndicator) {
+    public Verb(String[] names, boolean needsDirect, boolean needsIndirect, boolean acceptsDirect, boolean acceptsIndirect, boolean acceptsMultipleDirect) {//, String[] indirectIndicator) {
         this.names = names;
         this.needsDirect = needsDirect;
         this.needsIndirect = needsIndirect;
         this.acceptsDirect = acceptsDirect;
         this.acceptsIndirect = acceptsIndirect;
         this.acceptsMultipleDirect = acceptsMultipleDirect;
-        this.indirectIndicator = indirectIndicator;
+        // this.indirectIndicator = indirectIndicator;
     }
 }
 

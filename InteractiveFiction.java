@@ -53,32 +53,47 @@ public class InteractiveFiction {
         //==============================VERBS==============================
 
         Verb[] verbs = new Verb[]{
-            new Verb(new String[]{"hello", "hi", "hey"}, false, false, false, false, false, new String[]{}),
-            new Verb(new String[]{"look", "l", "inspect", "examine", "search"}, false, false, true, false, true, new String[]{}),
-            new Verb(new String[]{"inventory", "holding"}, false, false, false, false, false, new String[]{}),
+            new Verb(new String[]{"hello", "hi", "hey"}, false, false, false, false, false),
+            new Verb(new String[]{"look", "l", "inspect", "examine", "search", "check"}, false, false, true, false, true),
+            new Verb(new String[]{"inventory", "holding"}, false, false, false, false, false),
 
-            new Verb(new String[]{"go", "move", "walk", "run"}, false, false, false, false, false, new String[]{}),
-            new Verb(new String[]{"north", "n"}, false, false, false, false, false, new String[]{}),
-            new Verb(new String[]{"south", "s"}, false, false, false, false, false, new String[]{}),
-            new Verb(new String[]{"east", "e"}, false, false, false, false, false, new String[]{}),
-            new Verb(new String[]{"northeast", "ne"}, false, false, false, false, false, new String[]{}),
-            new Verb(new String[]{"southeast", "se"}, false, false, false, false, false, new String[]{}),
-            new Verb(new String[]{"southwest", "sw"}, false, false, false, false, false, new String[]{}),
-            new Verb(new String[]{"northwest", "nw"}, false, false, false, false, false, new String[]{}),
-            new Verb(new String[]{"west", "w"}, false, false, false, false, false, new String[]{}),
-            new Verb(new String[]{"up", "u"}, false, false, false, false, false, new String[]{}),
-            new Verb(new String[]{"down", "d"}, false, false, false, false, false, new String[]{}),
-            new Verb(new String[]{"in", "enter"}, false, false, false, false, false, new String[]{}),
-            new Verb(new String[]{"out", "leave"}, false, false, false, false, false, new String[]{}),
+            new Verb(new String[]{"go", "move", "walk", "run"}, false, false, false, false, false),
+            new Verb(new String[]{"north", "n"}, false, false, false, false, false),
+            new Verb(new String[]{"south", "s"}, false, false, false, false, false),
+            new Verb(new String[]{"east", "e"}, false, false, false, false, false),
+            new Verb(new String[]{"northeast", "ne"}, false, false, false, false, false),
+            new Verb(new String[]{"southeast", "se"}, false, false, false, false, false),
+            new Verb(new String[]{"southwest", "sw"}, false, false, false, false, false),
+            new Verb(new String[]{"northwest", "nw"}, false, false, false, false, false),
+            new Verb(new String[]{"west", "w"}, false, false, false, false, false),
+            new Verb(new String[]{"up", "u", "climb"}, false, false, false, false, false),
+            new Verb(new String[]{"down", "d"}, false, false, false, false, false),
+            new Verb(new String[]{"in", "enter"}, false, false, false, false, false),
+            new Verb(new String[]{"out", "leave", "exit"}, false, false, false, false, false),
             
-            new Verb(new String[]{"take", "pick", "pickup", "grab", "hold", "keep"}, true, false, true, false, true, new String[]{}),
-            new Verb(new String[]{"drop", "leave", "set", "put", "place", "store"}, true, false, true, true, true, new String[]{"in", "inside", "into"}),
-            new Verb(new String[]{"hit", "kill", "attack", "cut"}, true, true, true, true, false, new String[]{"with", "use", "using"}),
-            new Verb(new String[]{"chuck", "throw", "fling", "toss", "hurl"}, true, true, true, true, false, new String[]{"at", "towards"}),
-            new Verb(new String[]{"smell", "sniff"}, true, false, true, false, true, new String[]{}),
-            new Verb(new String[]{"eat"}, true, false, true, false, true, new String[]{}),
-            new Verb(new String[]{"open"}, true, false, true, false, true, new String[]{}),
-            new Verb(new String[]{"close"}, true, false, true, false, true, new String[]{}),
+            new Verb(new String[]{"take", "pick", "pickup", "grab", "hold", "keep"}, true, false, true, false, true),
+            new Verb(new String[]{"drop", "leave", "set", "put", "place", "store"}, true, false, true, true, true){{indirectIndicator = new String[]{"in", "inside", "into"};}},
+            new Verb(new String[]{"hit", "kill", "attack", "cut", "fight", "destroy", "break"}, true, true, true, true, false){{indirectIndicator = new String[]{"with", "use", "using"};}},
+            new Verb(new String[]{"open"}, true, false, true, false, true),
+            new Verb(new String[]{"close", "shut"}, true, false, true, false, true),
+
+            new Verb(new String[]{"chuck", "throw", "fling", "toss", "hurl"}, true, true, true, true, false){{indirectIndicator = new String[]{"at", "towards"};}},
+            new Verb(new String[]{"smell", "sniff"}, true, false, true, false, true),
+            new Verb(new String[]{"eat"}, true, false, true, false, true),
+            new Verb(new String[]{"drink"}, true, false, true, false, true),
+            new Verb(new String[]{"read", "consult"}, true, false, true, false, true),
+            new Verb(new String[]{"jump", "hop", "skip"}, false, false, true, false, false),
+            new Verb(new String[]{"kiss"}, true, false, true, false, true),
+            new Verb(new String[]{"hug, embrace"}, true, false, true, false, false),
+            new Verb(new String[]{"listen", "hear"}, false, false, true, false, true),
+            new Verb(new String[]{"sing", "serenade"}, false, false, false, false, false),
+            new Verb(new String[]{"sleep", "nap"}, false, false, false, false, false),
+            new Verb(new String[]{"sorry", "apologize", "apologise"}, false, false, true, false, true),
+            new Verb(new String[]{"shout", "yell", "scream"}, false, false, false, false, false),
+            new Verb(new String[]{"taste", "lick"}, true, false, true, false, true),
+            new Verb(new String[]{"touch", "feel", "fondle", "grope"}, true, false, true, false, true),
+            new Verb(new String[]{"lock"}, true, true, true, true, false){{indirectIndicator = new String[]{"with", "use", "using"};}},
+            new Verb(new String[]{"unlock"}, true, true, true, true, false){{indirectIndicator = new String[]{"with", "use", "using"};}},
         };
 
 
@@ -106,7 +121,7 @@ public class InteractiveFiction {
 
         //==============================ITEMS==============================
         
-        Player player = new Player(rooms[0], "You are such a player.", 10){
+        Player player = new Player(rooms[0], "You are such a player.", 10) {
             @Override
             public String getHit(Thing indirect) {
                 if (!indirect.deadly) {

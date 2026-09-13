@@ -54,11 +54,6 @@ public class Parser {
 
         Verb verb = this.verbs[verbIndex[0]];
 
-        if (Objects.equals(verb.names[0], "hello")) {
-            System.out.println("Hello!");
-            return null;
-        }
-
         if (Objects.equals(verb.names[0], "go")) {
 
             inputList = remove(inputList, verb.names[verbIndex[1]]);
@@ -142,14 +137,14 @@ public class Parser {
 
         String indirectResponse = this.console.readLine("What do you want to " + verb.names[verbIndex[1]] + " the " + directs[0].names[0] + " " + verb.indirectIndicator[0] + "?\n\n>>> ");
         String[] indirectResponseList = cleanInput(indirectResponse);
-        indirect = checkDirect(indirectResponseList)[0];
+        Thing[] indirectList = checkDirect(indirectResponseList);
 
-        if (indirect == null) {
+        if (indirectList.length == 0) {
             System.out.println("I don't understand what you're trying to do!");
             return null;
         }
 
-        return new Action(verb, directs, indirect);
+        return new Action(verb, directs, indirectList[0]);
     }
 
     public int[] checkVerb(String[] input) {
