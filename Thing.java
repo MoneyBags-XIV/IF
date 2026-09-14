@@ -422,14 +422,14 @@ class Player extends Thing {
         return false;
     }
 
-    public boolean holding(Thing target) {
-        for (int i=0; i<this.contents.length; i++) {
-            if (target == this.contents[i]) {
-                return true;
-            }
-        }
-        return false;
-    }
+    // public boolean holding(Thing target) {
+    //     for (int i=0; i<this.contents.length; i++) {
+    //         if (target == this.contents[i]) {
+    //             return true;
+    //         }
+    //     }
+    //     return false;
+    // }
 
     public void hello(Thing direct, Thing indirect) {
         System.out.println("Hello!");
@@ -472,7 +472,7 @@ class Player extends Thing {
             System.out.println("You can't carry any more.");
             return;
         }
-        if (this.holding(direct)) {
+        if (this.contains(direct)) {
             System.out.println("You are already holding the " + direct.names[0] + ".");
             return;
         }
@@ -485,7 +485,7 @@ class Player extends Thing {
     }
 
     public void drop(Thing direct, Thing indirect) {
-        if (!this.holding(direct)) {
+        if (!this.contains(direct)) {
             System.out.println("You're not holding the " + direct.names[0] + "!");
             return;
         }
@@ -637,10 +637,18 @@ class Player extends Thing {
     }
 
     public void lock(Thing direct, Thing indirect) {
+        if (!this.contains(indirect)) {
+            System.out.println("You're not holding the " + indirect.names[0] + "!");
+            return;
+        }
         System.out.println(direct.getLocked(indirect));
     }
 
     public void unlock(Thing direct, Thing indirect) {
+        if (!this.contains(indirect)) {
+            System.out.println("You're not holding the " + indirect.names[0] + "!");
+            return;
+        }
         System.out.println(direct.getUnlocked(indirect));
     }
 

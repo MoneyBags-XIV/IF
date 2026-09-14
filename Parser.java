@@ -37,6 +37,17 @@ public class Parser {
             return null;
         }
 
+        for (int i=0; i<inputList.length; i++) {
+            if (Objects.equals(inputList[i], "asdfghjkl")) {
+                System.out.println("qwertyuiop");
+                return null;
+            }
+            if (Objects.equals(inputList[i], "qwertyuiop")) {
+                System.out.println("asdfghjkl");
+                return null;
+            }
+        }
+
         String[] curseList = new String[]{"fuck", "shit", "bitch"};
         for (int i=0; i<inputList.length; i++) {
             for (int j=0; j<curseList.length; j++) {
