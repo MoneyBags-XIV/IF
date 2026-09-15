@@ -1,9 +1,10 @@
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.io.*;
 
 
-public class Thing {
+public class Thing implements Serializable {
     String[] names;
     String description;
     Thing[] contents;
@@ -146,11 +147,23 @@ public class Thing {
     }
 
     public String getOpened() {
+        if (!this.container) {
+            return "Good luck with that!";
+        }
+        if (this.open) {
+            return "The " + this.names[0] + " is already open.";
+        }
         this.open = true;
         return "Ok, the " + this.names[0] + " is now open.";
     }
 
     public String getClosed() {
+        if (!this.container) {
+            return "Good luck with that!";
+        }
+        if (!this.open) {
+            return "The " + this.names[0] + " is already closed.";
+        }
         this.open = false;
         return "Ok, the " + this.names[0] + " is now closed.";
     }
@@ -513,26 +526,26 @@ class Player extends Thing {
     }
 
     public void open(Thing direct, Thing indirect) {
-        if (!direct.container) {
-            System.out.println("Good luck with that!");
-            return;
-        }
-        if (direct.open) {
-            System.out.println("The " + direct.names[0] + " is already open.");
-            return;
-        }
+        // if (!direct.container) {
+        //     System.out.println("Good luck with that!");
+        //     return;
+        // }
+        // if (direct.open) {
+        //     System.out.println("The " + direct.names[0] + " is already open.");
+        //     return;
+        // }
         System.out.println(direct.getOpened());
     }
 
     public void close(Thing direct, Thing indirect) {
-        if (!direct.container) {
-            System.out.println("Good luck with that!");
-            return;
-        }
-        if (!direct.open) {
-            System.out.println("The " + direct.names[0] + " is already closed.");
-            return;
-        }
+        // if (!direct.container) {
+        //     System.out.println("Good luck with that!");
+        //     return;
+        // }
+        // if (!direct.open) {
+        //     System.out.println("The " + direct.names[0] + " is already closed.");
+        //     return;
+        // }
         System.out.println(direct.getClosed());
     }
 
@@ -681,7 +694,7 @@ class Action {
 }
 
 
-class Verb {
+class Verb implements Serializable {
 
     String[] names;
     boolean needsDirect;
@@ -703,7 +716,7 @@ class Verb {
 }
 
 
-class Game {
+class Game implements Serializable {
 
     Verb[] verbs;
     Thing[] items;
@@ -711,12 +724,15 @@ class Game {
     Parser parser;
     Player player;
 
+    int turns;
+
     public Game(Verb[] verbs, Thing[] items, Room[] rooms, Parser parser, Player player) {
         this.verbs = verbs;
         this.items = items;
         this.rooms = rooms;
         this.parser = parser;
         this.player = player;
+        this.turns = 0;
     }
 
     public void free(Thing target) {

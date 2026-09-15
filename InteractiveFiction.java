@@ -1,5 +1,5 @@
 import java.util.ArrayList;
-import java.io.Console;
+import java.io.*;
 import java.util.Objects;
 import java.util.Arrays;
 
@@ -15,19 +15,37 @@ public class InteractiveFiction {
         Room[] rooms = game.rooms;
         Player player = game.player;
         Parser parser = game.parser;
-        parser.console = console;
 
 
         String ans;
-        int turn = 0;
         Action action;
+
+        Game tmp;
 
         while (true) {
 
             ans = console.readLine("\n>>> ");
-            action = parser.parse(ans);
+            action = parser.parse(ans, console);
 
             if (action != null) {
+
+                if (Objects.equals(action.verb.names[0], "save")) {
+                    save(game, console);
+                    continue;
+                }
+                else if (Objects.equals(action.verb.names[0], "load")) {
+                    tmp = load(console);
+                    if (tmp != null) {
+                        game = tmp;
+                        verbs = game.verbs;
+                        items = game.items;
+                        rooms = game.rooms;
+                        player = game.player;
+                        parser = game.parser;
+                    }
+                    continue;
+                }
+
                 try {
                     player.handleInput(action);
                 } catch (Exception e) {
@@ -43,7 +61,133 @@ public class InteractiveFiction {
                 items[i].doTurn();
             }
 
-            turn++;
+            game.turns++;
+        }
+    }
+
+    public static void save(Game game, Console console) {
+        File folder = new File(".");
+        File[] list = folder.listFiles();
+
+        String name;
+        String extension;
+        String[] splitName;
+
+        int highestSave = 0;
+        int num;
+
+        for (int i=0; i<list.length; i++) {
+            if (!list[i].isFile()) {continue;}
+
+            name = list[i].getName();
+
+            splitName = name.split("\\.");
+
+            // if (splitName.length < 2) {continue;}
+
+            extension = splitName[splitName.length -1];
+
+            if (!Objects.equals(extension, "dat")) {continue;}
+
+            try {
+                num = Character.getNumericValue(splitName[0].charAt(splitName[0].length() -1));
+                if (num > highestSave) {
+                    highestSave = num;
+                }
+            } catch(Exception e){}
+        }
+
+        highestSave += 1;
+
+        String filename = console.readLine("Name this save (Default is save" + highestSave + ".dat)\n>>> ");
+        if (filename.length() == 0) {
+            filename = "save" + highestSave + ".dat";
+        }
+        splitName = filename.split("\\.");
+        extension = splitName[splitName.length -1];
+
+        if (!Objects.equals(extension, "dat")) {
+            filename += ".dat";
+        }
+
+        try {
+            FileOutputStream file = new FileOutputStream(filename);
+            ObjectOutputStream out = new ObjectOutputStream(file);
+            out.writeObject(game);
+            out.close();
+            file.close();
+            System.out.println("Saved.");
+        } catch(Exception e){
+            System.out.println(e);
+        }
+    }
+
+    public static Game load(Console console) {
+        File folder = new File(".");
+        File[] list = folder.listFiles();
+
+        String name;
+        String extension;
+        String[] splitName;
+        ArrayList<String> namesList = new ArrayList<String>();
+
+        for (int i=0; i<list.length; i++) {
+            if (!list[i].isFile()) {continue;}
+
+            name = list[i].getName();
+            splitName = name.split("\\.");
+            extension = splitName[splitName.length -1];
+
+            if (!Objects.equals(extension, "dat")) {continue;}
+
+            namesList.add(name);
+        }
+
+        String[] names = namesList.toArray(new String[0]);
+
+        String filename;
+
+        if (names.length == 0) {
+            System.out.println("No saves found.");
+            return null;
+        }
+        else if (names.length == 1) {
+            filename = names[0];
+        }
+
+        String input;
+        int selection;
+        while (true) {
+            for (int i=0; i<names.length; i++) {
+                System.out.println(i + 1 + ") " + names[i]);
+            }
+            input = console.readLine("Load which save? (1-" + names.length + ")\n>>> ");
+            try {
+                selection = Integer.parseInt(input);
+                filename = names[selection-1];
+                break;
+            }
+            catch(Exception e){
+                System.out.println("Please make a valid selection.");
+                continue;
+            }
+        }
+
+        String confirmation = console.readLine("Confirm reverting to " + filename + "? (yes/no)\n>>> ");
+        if (!(confirmation.equalsIgnoreCase("yes") || confirmation.equalsIgnoreCase("y"))) {
+            return null;
+        }
+
+        try {
+            FileInputStream file = new FileInputStream(filename);
+            ObjectInputStream in = new ObjectInputStream(file);
+            Game game = (Game) in.readObject();
+            in.close();
+            file.close();
+            return game;
+        } catch(Exception e) {
+            System.out.println(e);
+            return null;
         }
     }
 
@@ -53,9 +197,14 @@ public class InteractiveFiction {
         //==============================VERBS==============================
 
         Verb[] verbs = new Verb[]{
+
+            new Verb(new String[]{"save"}, false, false, false, false, false),
+            new Verb(new String[]{"load", "restore"}, false, false, false, false, false),
+            new Verb(new String[]{"restart"}, false, false, false, false, false),
+
             new Verb(new String[]{"hello", "hi", "hey"}, false, false, false, false, false),
             new Verb(new String[]{"look", "l", "inspect", "examine", "search", "check"}, false, false, true, false, true),
-            new Verb(new String[]{"inventory", "holding"}, false, false, false, false, false),
+            new Verb(new String[]{"inventory", "holding", "inv"}, false, false, false, false, false),
 
             new Verb(new String[]{"go", "move", "walk", "run"}, false, false, false, false, false),
             new Verb(new String[]{"north", "n"}, false, false, false, false, false),
@@ -81,7 +230,7 @@ public class InteractiveFiction {
             new Verb(new String[]{"smell", "sniff"}, true, false, true, false, true),
             new Verb(new String[]{"eat"}, true, false, true, false, true),
             new Verb(new String[]{"drink"}, true, false, true, false, true),
-            new Verb(new String[]{"read", "consult"}, true, false, true, false, true),
+            new Verb(new String[]{"read"}, true, false, true, false, true),
             new Verb(new String[]{"jump", "hop", "skip"}, false, false, true, false, false),
             new Verb(new String[]{"kiss"}, true, false, true, false, true),
             new Verb(new String[]{"hug, embrace"}, true, false, true, false, false),
@@ -121,7 +270,7 @@ public class InteractiveFiction {
 
         //==============================ITEMS==============================
         
-        Player player = new Player(rooms[0], "You are such a player.", 10) {
+        Player player = new Player(kitchen, "You are such a player.", 10) {
             @Override
             public String getHit(Thing indirect) {
                 if (!indirect.deadly) {
@@ -131,6 +280,10 @@ public class InteractiveFiction {
                 System.exit(0);
                 return "";
             }
+
+            @Override public String getSmelled() {return "It's not good.";}
+            @Override public String getTouched() {return "Don't do that.";}
+            @Override public String getRead() {return "Reading people was never your strong suit.";}
         };
 
         Item knife = new Item(new String[]{"knife"}, "This steak knife is a sharp example object.", 0);
