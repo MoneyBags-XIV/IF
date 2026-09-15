@@ -21,12 +21,14 @@ public class Parser {
     }
 
     public Action parse(String input) {
+
         String[] inputList = cleanInput(input);
         int[] verbIndex = checkVerb(inputList);
 
         if (Objects.equals(input, "i")) {
             for (int i=0; i<this.verbs.length; i++) {
                 if (Objects.equals(this.verbs[i].names[0], "inventory")) {
+                    this.it = null;
                     return new Action(this.verbs[i], null, null);
                 }
             }
@@ -34,16 +36,19 @@ public class Parser {
 
         if (Objects.equals(input, "")) {
             System.out.println("I beg your pardon?");
+            this.it = null;
             return null;
         }
 
         for (int i=0; i<inputList.length; i++) {
             if (Objects.equals(inputList[i], "asdfghjkl")) {
                 System.out.println("qwertyuiop");
+                this.it = null;
                 return null;
             }
             if (Objects.equals(inputList[i], "qwertyuiop")) {
                 System.out.println("asdfghjkl");
+                this.it = null;
                 return null;
             }
         }
@@ -53,6 +58,7 @@ public class Parser {
             for (int j=0; j<curseList.length; j++) {
                 if (inputList[i].contains(curseList[j])) {
                     System.out.println("You kiss your mother with that mouth??");
+                    this.it = null;
                     return null;
                 }
             }
@@ -60,6 +66,7 @@ public class Parser {
 
         if (verbIndex == null) {
             System.out.println("There's no verb in that sentence!");
+            this.it = null;
             return null;
         }
 
@@ -76,6 +83,7 @@ public class Parser {
                 verb = this.verbs[verbIndex[0]];
                 for (int i=0; i<directions.length; i++) {
                     if (Objects.equals(verb.names[0], directions[i])) {
+                        this.it = null;
                         return new Action(verb, null, null);
                     }
                 }
@@ -86,6 +94,7 @@ public class Parser {
             verbIndex = checkVerb(goResponseList);
             if (verbIndex == null) {
                 System.out.println("I don't know which way you want to go!");
+                this.it = null;
                 return null;
             }
 
@@ -93,10 +102,12 @@ public class Parser {
 
             for (int i=0; i<directions.length; i++) {
                 if (Objects.equals(directions[i], verb.names[0])) {
+                    this.it = null;
                     return new Action(verb, null, null);
                 }
             }
             System.out.println("I don't know which way you want to go!");
+            this.it = null;
             return null;
         }
         
@@ -113,6 +124,7 @@ public class Parser {
         }
 
         if (!verb.acceptsDirect) {
+            this.it = null;
             return new Action(verb, null, null);
         }
 
@@ -120,6 +132,7 @@ public class Parser {
 
         if (directs.length == 0) {
             if (!verb.needsDirect) {
+                this.it = null;
                 return new Action(verb, null, null);
             }
             String directResponse = this.console.readLine("What do you want to " + verb.names[verbIndex[1]] + "?\n\n>>> ");
@@ -127,15 +140,21 @@ public class Parser {
             directs = checkDirect(directResponseList);
             if (directs.length == 0) {
                 System.out.println("I don't understand what you're trying to do!");
+                this.it = null;
                 return null;
             }
         }
 
-        if (directs.length > 1) {
-            if (!verb.acceptsMultipleDirect) {
-                System.out.println("You can't " + verb.names[verbIndex[1]] + " multiple things at once.");
-                return null;
-            }
+        if (directs.length > 1 && !verb.acceptsMultipleDirect) {
+            System.out.println("You can't " + verb.names[verbIndex[1]] + " multiple things at once.");
+            this.it = null;
+            return null;
+        }
+
+        if (directs.length == 1) {
+            this.it = directs[0];
+        } else {
+            this.it = null;
         }
 
         if (indirect == null && !verb.needsIndirect) {
@@ -143,6 +162,7 @@ public class Parser {
         }
 
         if (indirect != null) {
+
             return new Action(verb, directs, indirect);
         }
 
@@ -180,8 +200,7 @@ public class Parser {
                         foundIndicator = true;
                     }
                 }
-            }
-            else {
+            } else {
                 for (int j=0; j<this.items.length; j++) {
                     for (int k=0; k<this.items[j].names.length; k++) {
                         if (Objects.equals(this.items[j].names[k], input[i])) {
@@ -207,7 +226,17 @@ public class Parser {
             }
         }
 
-        return ans.toArray(new Thing[0]);
+        Thing[] directs = ans.toArray(new Thing[0]);
+        
+        if (directs.length == 0) {
+            for (int i=0; i<input.length; i++) {
+                if (Objects.equals(input[i], "it") && !(this.it == null)) {
+                    directs = new Thing[]{this.it};
+                }
+            }
+        }
+
+        return directs;
     }
 
     public String[] remove(String[] phrase, String word) {
