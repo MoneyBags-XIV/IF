@@ -6,15 +6,11 @@ import java.util.Arrays;
 
 public class Parser implements Serializable {
     
-    Room[] rooms;
-    Thing[] items;
-    Verb[] verbs;
+    Game game;
     Thing it;
 
-    public Parser(Room[] rooms, Thing[] items, Verb[] verbs) {
-        this.rooms = rooms;
-        this.items = items;
-        this.verbs = verbs;
+    public Parser() {
+        // this.game = game;
         this.it = null;
     }
 
@@ -24,10 +20,10 @@ public class Parser implements Serializable {
         int[] verbIndex = checkVerb(inputList);
 
         if (Objects.equals(input, "i")) {
-            for (int i=0; i<this.verbs.length; i++) {
-                if (Objects.equals(this.verbs[i].names[0], "inventory")) {
+            for (int i=0; i<this.game.verbs.length; i++) {
+                if (Objects.equals(this.game.verbs[i].names[0], "inventory")) {
                     this.it = null;
-                    return new Action(this.verbs[i], null, null);
+                    return new Action(this.game.verbs[i], null, null);
                 }
             }
         }
@@ -68,7 +64,7 @@ public class Parser implements Serializable {
             return null;
         }
 
-        Verb verb = this.verbs[verbIndex[0]];
+        Verb verb = this.game.verbs[verbIndex[0]];
 
         if (Objects.equals(verb.names[0], "go")) {
 
@@ -78,7 +74,7 @@ public class Parser implements Serializable {
             String[] directions = new String[]{"north", "south", "east", "west", "northeast", "southeast", "southwest", "northwest", "up", "down", "in", "out"};
 
             if (verbIndex != null) {
-                verb = this.verbs[verbIndex[0]];
+                verb = this.game.verbs[verbIndex[0]];
                 for (int i=0; i<directions.length; i++) {
                     if (Objects.equals(verb.names[0], directions[i])) {
                         this.it = null;
@@ -87,7 +83,9 @@ public class Parser implements Serializable {
                 }
             }
 
-            String goResponse = console.readLine("Which way do you want to go?\n\n>>> ");
+            System.out.print("Which way do you want to go?\n\n>>> ");
+            this.game.updateTopBar();
+            String goResponse = console.readLine();
             String[] goResponseList = cleanInput(goResponse);
             verbIndex = checkVerb(goResponseList);
             if (verbIndex == null) {
@@ -96,7 +94,7 @@ public class Parser implements Serializable {
                 return null;
             }
 
-            verb = this.verbs[verbIndex[0]];
+            verb = this.game.verbs[verbIndex[0]];
 
             for (int i=0; i<directions.length; i++) {
                 if (Objects.equals(directions[i], verb.names[0])) {
@@ -133,7 +131,10 @@ public class Parser implements Serializable {
                 this.it = null;
                 return new Action(verb, null, null);
             }
-            String directResponse = console.readLine("What do you want to " + verb.names[verbIndex[1]] + "?\n\n>>> ");
+
+            System.out.print("What do you want to " + verb.names[verbIndex[1]] + "?\n\n>>> ");
+            this.game.updateTopBar();
+            String directResponse = console.readLine();
             String[] directResponseList = cleanInput(directResponse);
             directs = checkDirect(directResponseList);
             if (directs.length == 0) {
@@ -164,7 +165,9 @@ public class Parser implements Serializable {
             return new Action(verb, directs, indirect);
         }
 
-        String indirectResponse = console.readLine("What do you want to " + verb.names[verbIndex[1]] + " the " + directs[0].names[0] + " " + verb.indirectIndicator[0] + "?\n\n>>> ");
+        System.out.print("What do you want to " + verb.names[verbIndex[1]] + " the " + directs[0].names[0] + " " + verb.indirectIndicator[0] + "?\n\n>>> ");
+        this.game.updateTopBar();
+        String indirectResponse = console.readLine();
         String[] indirectResponseList = cleanInput(indirectResponse);
         Thing[] indirectList = checkDirect(indirectResponseList);
 
@@ -178,9 +181,9 @@ public class Parser implements Serializable {
 
     public int[] checkVerb(String[] input) {
         for (int k=0; k<input.length; k++) {
-            for (int i=0; i<this.verbs.length; i++) {
-                for (int j=0; j<this.verbs[i].names.length; j++) {
-                    if (Objects.equals(input[k], this.verbs[i].names[j])) {
+            for (int i=0; i<this.game.verbs.length; i++) {
+                for (int j=0; j<this.game.verbs[i].names.length; j++) {
+                    if (Objects.equals(input[k], this.game.verbs[i].names[j])) {
                         return new int[]{i,j};
                     }
                 }
@@ -199,10 +202,10 @@ public class Parser implements Serializable {
                     }
                 }
             } else {
-                for (int j=0; j<this.items.length; j++) {
-                    for (int k=0; k<this.items[j].names.length; k++) {
-                        if (Objects.equals(this.items[j].names[k], input[i])) {
-                            return this.items[j];
+                for (int j=0; j<this.game.items.length; j++) {
+                    for (int k=0; k<this.game.items[j].names.length; k++) {
+                        if (Objects.equals(this.game.items[j].names[k], input[i])) {
+                            return this.game.items[j];
                         }
                     }
                 }
@@ -215,10 +218,10 @@ public class Parser implements Serializable {
         ArrayList<Thing> ans = new ArrayList<Thing>();
 
         for (int i=0; i<input.length; i++) {
-            for (int j=0; j<this.items.length; j++) {
-                for (int k=0; k<this.items[j].names.length; k++) {
-                    if (Objects.equals(input[i], this.items[j].names[k])) {
-                        ans.add(this.items[j]);
+            for (int j=0; j<this.game.items.length; j++) {
+                for (int k=0; k<this.game.items[j].names.length; k++) {
+                    if (Objects.equals(input[i], this.game.items[j].names[k])) {
+                        ans.add(this.game.items[j]);
                     }
                 }
             }

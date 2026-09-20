@@ -129,9 +129,12 @@ public class Thing implements Serializable {
     }
 
     public String getTaken(Player player) {
+        if (!this.takeable) {
+            return "Good luck with that!";
+        }
         player.game.free(this);
         player.addToContents(this);
-        return "Taken.";
+        return "Ok, you are now holding the " + this.names[0] + ".";
     }
 
     public String getDropped(Player player, Thing indirect) {
@@ -489,10 +492,6 @@ class Player extends Thing {
             System.out.println("You are already holding the " + direct.names[0] + ".");
             return;
         }
-        if (!direct.takeable) {
-            System.out.println("Good luck with that!");
-            return;
-        }
         System.out.println(direct.getTaken(this));  // This uses getter/setter style logic to make overriding easier for custom take behavior.
         return;
     }
@@ -680,6 +679,11 @@ class Player extends Thing {
 }
 
 
+class NPC extends Thing {
+
+}
+
+
 class Action {
 
     Verb verb;
@@ -733,6 +737,22 @@ class Game implements Serializable {
         this.parser = parser;
         this.player = player;
         this.turns = 0;
+    }
+
+    public void updateTopBar() {
+        System.out.print("\u001b[s");
+        System.out.print("\u001b[H");
+        System.out.print("\u001b[1000C");
+
+        System.out.print("\u001b[30m\u001b[47m\u001b[1m");
+
+        System.out.print(" " + "\u001b[1D");
+        for (int i=0; i<1000; i++) {
+            System.out.print(" " + "\u001b[2D");
+        }
+
+        System.out.print("test" + this.turns);
+        System.out.print("\u001b[u");
     }
 
     public void free(Thing target) {

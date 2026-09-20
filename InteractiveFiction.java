@@ -24,8 +24,11 @@ public class InteractiveFiction {
 
         while (true) {
 
-            ans = console.readLine("\n>>> ");
+            System.out.print("\n>>> ");
+            game.updateTopBar();
+            ans = console.readLine();
             action = parser.parse(ans, console);
+
 
             if (action != null) {
 
@@ -36,6 +39,19 @@ public class InteractiveFiction {
                 else if (Objects.equals(action.verb.names[0], "load")) {
                     tmp = load(console);
                     if (tmp != null) {
+                        game = tmp;
+                        verbs = game.verbs;
+                        items = game.items;
+                        rooms = game.rooms;
+                        player = game.player;
+                        parser = game.parser;
+                    }
+                    continue;
+                }
+                else if (Objects.equals(action.verb.names[0], "restart")) {
+                    tmp = defineDefaultGame();
+                    ans = console.readLine("Confirm restarting game? (yes/no)\n>>> ");
+                    if (ans.equalsIgnoreCase("yes") || ans.equalsIgnoreCase("y")) {
                         game = tmp;
                         verbs = game.verbs;
                         items = game.items;
@@ -117,9 +133,7 @@ public class InteractiveFiction {
             out.close();
             file.close();
             System.out.println("Saved.");
-        } catch(Exception e){
-            System.out.println(e);
-        }
+        } catch(Exception e){}
     }
 
     public static Game load(Console console) {
@@ -186,7 +200,6 @@ public class InteractiveFiction {
             file.close();
             return game;
         } catch(Exception e) {
-            System.out.println(e);
             return null;
         }
     }
@@ -233,7 +246,7 @@ public class InteractiveFiction {
             new Verb(new String[]{"read"}, true, false, true, false, true),
             new Verb(new String[]{"jump", "hop", "skip"}, false, false, true, false, false),
             new Verb(new String[]{"kiss"}, true, false, true, false, true),
-            new Verb(new String[]{"hug, embrace"}, true, false, true, false, false),
+            new Verb(new String[]{"hug", "embrace"}, true, false, true, false, false),
             new Verb(new String[]{"listen", "hear"}, false, false, true, false, true),
             new Verb(new String[]{"sing", "serenade"}, false, false, false, false, false),
             new Verb(new String[]{"sleep", "nap"}, false, false, false, false, false),
@@ -301,6 +314,25 @@ public class InteractiveFiction {
 
         kitchen.addToContents(knife);
 
+        Item cook = new Item(new String[]{"cook", "cooks"}, "They look busy.", 0) {
+            {
+                this.takeable = false;
+                this.silent = true;
+            }
+
+            @Override
+            public String getTouched() {
+                return "The cook seems uncomfortable with this.";
+            }
+            @Override
+            public String getTaken(Player player) {
+                return "The cooks are happy right where they are.";
+            }
+        };
+        // cook.takeable = false;
+        // cook.silent = true;
+        kitchen.addToContents(cook);
+
         // kitchen.addToContents(player);
 
         Thing[] items = new Thing[] {
@@ -308,11 +340,14 @@ public class InteractiveFiction {
             knife,
             spoon,
             bag,
+            cook,
         };
 
-        Parser parser = new Parser(rooms, items, verbs);
+        Parser parser = new Parser();
 
         Game game = new Game(verbs, items, rooms, parser, player);
+
+        parser.game = game;
 
         player.game = game;
         return game;
