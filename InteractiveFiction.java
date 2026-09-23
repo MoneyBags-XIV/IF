@@ -22,6 +22,10 @@ public class InteractiveFiction {
 
         Game tmp;
 
+        System.out.print("\u001b[2J");
+
+        System.out.println(player.look(null, null));
+
         while (true) {
 
             System.out.print("\n>>> ");
@@ -61,6 +65,17 @@ public class InteractiveFiction {
                     }
                     continue;
                 }
+                else if (Objects.equals(action.verb.names[0], "quit")) {
+                    ans = console.readLine("Confirm quitting game? (yes/no)\n>>> ");
+                    if (ans.equalsIgnoreCase("yes") || ans.equalsIgnoreCase("y")) {
+                        ans = console.readLine("Would you like to save your progress? (yes/no)\n>>> ");
+                        if (ans.equalsIgnoreCase("yes") || ans.equalsIgnoreCase("y")) {
+                            save(game, console);
+                        }
+                        break;
+                    }
+                    continue;
+                }
 
                 try {
                     player.handleInput(action);
@@ -70,11 +85,11 @@ public class InteractiveFiction {
             }
 
             for (int i=0; i<rooms.length; i++) {
-                rooms[i].doTurn();
+                rooms[i].doTurn(game.turns);
             }
 
-            for (int i=1; i<items.length; i++) {    //i=1 so the player doesn't doTurn twice
-                items[i].doTurn();
+            for (int i=0; i<items.length; i++) {    //i=1 so the player doesn't doTurn twice
+                items[i].doTurn(game.turns);
             }
 
             game.turns++;
@@ -106,7 +121,7 @@ public class InteractiveFiction {
             if (!Objects.equals(extension, "dat")) {continue;}
 
             try {
-                num = Character.getNumericValue(splitName[0].charAt(splitName[0].length() -1));
+                num = Integer.parseInt("" + splitName[0].charAt(splitName[0].length() -1));
                 if (num > highestSave) {
                     highestSave = num;
                 }
@@ -214,10 +229,12 @@ public class InteractiveFiction {
             new Verb(new String[]{"save"}, false, false, false, false, false),
             new Verb(new String[]{"load", "restore"}, false, false, false, false, false),
             new Verb(new String[]{"restart"}, false, false, false, false, false),
+            new Verb(new String[]{"quit"}, false, false, false, false, false),
 
             new Verb(new String[]{"hello", "hi", "hey"}, false, false, false, false, false),
             new Verb(new String[]{"look", "l", "inspect", "examine", "search", "check"}, false, false, true, false, true),
             new Verb(new String[]{"inventory", "holding", "inv"}, false, false, false, false, false),
+            new Verb(new String[]{"wait"}, false, false, false, false, false),
 
             new Verb(new String[]{"go", "move", "walk", "run"}, false, false, false, false, false),
             new Verb(new String[]{"north", "n"}, false, false, false, false, false),
@@ -235,9 +252,12 @@ public class InteractiveFiction {
             
             new Verb(new String[]{"take", "pick", "pickup", "grab", "hold", "keep"}, true, false, true, false, true),
             new Verb(new String[]{"drop", "leave", "set", "put", "place", "store"}, true, false, true, true, true){{indirectIndicator = new String[]{"in", "inside", "into"};}},
-            new Verb(new String[]{"hit", "kill", "attack", "cut", "fight", "destroy", "break"}, true, true, true, true, false){{indirectIndicator = new String[]{"with", "use", "using"};}},
+            new Verb(new String[]{"hit", "kill", "attack", "cut", "fight", "destroy", "break", "murder"}, true, true, true, true, false){{indirectIndicator = new String[]{"with", "use", "using"};}},
             new Verb(new String[]{"open"}, true, false, true, false, true),
             new Verb(new String[]{"close", "shut"}, true, false, true, false, true),
+
+            // TODO add "say", "ask" etc. to talk to NPCs
+            // TODO add "give", "hand"
 
             new Verb(new String[]{"chuck", "throw", "fling", "toss", "hurl"}, true, true, true, true, false){{indirectIndicator = new String[]{"at", "towards"};}},
             new Verb(new String[]{"smell", "sniff"}, true, false, true, false, true),
@@ -294,15 +314,35 @@ public class InteractiveFiction {
                 return "";
             }
 
+            @Override
+            public void doTurn(int turns) {
+                this.bac -= 0.001125;
+                if (this.bac < 0) {
+                    this.bac = 0;
+                }
+                super.doTurn(turns);
+            }
+
             @Override public String getSmelled() {return "It's not good.";}
             @Override public String getTouched() {return "Don't do that.";}
             @Override public String getRead() {return "Reading people was never your strong suit.";}
         };
 
+        Item hands = new Item(new String[]{"your hands", "hands", "hand", "fist"}, "They are nice!", 0);
+        hands.silent = true;
+        player.addToContents(hands);
+
         Item knife = new Item(new String[]{"knife"}, "This steak knife is a sharp example object.", 0);
         knife.deadly = true;
 
         kitchen.keepTrackOf = new Thing[]{knife};
+
+        NPC Bonnard = new NPC(new String[]{"Bonnard", "bonnard"}, "What a handsome fellow!", 10);
+        Bonnard.gender = 'm';
+        kitchen.addToContents(Bonnard);
+
+        Beverage beer = new Beverage(new String[]{"can of beer", "beer", "can"}, "It looks cheap.", 0, true);
+        kitchen.addToContents(beer);
 
         Item bag = new Item(new String[]{"bag"}, "This is a normal bag.", 10);
         bag.container = true;
@@ -341,6 +381,9 @@ public class InteractiveFiction {
             spoon,
             bag,
             cook,
+            Bonnard,
+            hands,
+            beer,
         };
 
         Parser parser = new Parser();

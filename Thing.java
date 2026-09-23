@@ -18,10 +18,10 @@ public class Thing implements Serializable {
 
     Thing[] keepTrackOf;
 
-    public void doTurn() {
+    public void doTurn(int turns) {
         for (int i=0; i<this.capacity; i++) {
             if (this.contents[i] != null) {
-                this.contents[i].doTurn();
+                this.contents[i].doTurn(turns);
             }
         }
     }
@@ -46,7 +46,7 @@ public class Thing implements Serializable {
 
     public boolean isEmpty() {
         for (int i=0; i<this.contents.length; i++) {
-            if (this.contents[i] != null) {
+            if (this.contents[i] != null && !this.contents[i].silent && !(this.contents[i].getClass() == NPC.class)) {
                 return false;
             }
         }
@@ -71,36 +71,51 @@ public class Thing implements Serializable {
         return false;
     }
 
+    public String nameForList() {
+        String ans = "";
+
+        if ("aeiou".indexOf(this.names[0].charAt(0)) != -1) {
+            ans += "an ";
+        } else {
+            ans += "a ";
+        }
+
+        ans += this.names[0];
+
+        if (this.container) {
+            if (this.open) {
+                ans += " (open)";
+            }
+            else {
+                ans += " (closed)";
+            }
+        }
+
+        return ans;
+    }
+
     public String listContents() {
         ArrayList<Thing> contents = new ArrayList<Thing>();
 
         for (int i=0; i<this.capacity; i++) {
-            if (this.contents[i] != null) {
-                if (!this.contents[i].silent){
-                    contents.add(this.contents[i]);
-                }
+            if (this.contents[i] != null && !this.contents[i].silent && this.contents[i].getClass() != NPC.class) {
+                contents.add(this.contents[i]);
             }
         }
 
-        Item[] ans = contents.toArray(new Item[0]);
+        Thing[] ans = contents.toArray(new Thing[0]);
         
         StringBuilder stringBuilder = new StringBuilder();
         for (int i=0; i<ans.length; i++) {
-            if ("aeiou".indexOf(ans[i].names[0].charAt(0)) != -1) {
-                stringBuilder.append("\nan ");
-            } else {
-                stringBuilder.append("\na ");
-            }
-            stringBuilder.append(ans[i].toString());
+
+            stringBuilder.append("\n" + ans[i].nameForList());
+
             if (ans[i].container) {
                 if (ans[i].open) {
-                    stringBuilder.append(" (open)");
                     if (!ans[i].isEmpty()) {
                         stringBuilder.append("\nThe " + ans[i].toString() + " contains:");
                     }
                     stringBuilder.append(ans[i].listContents().replaceAll("\n", "\n    "));
-                } else {
-                    stringBuilder.append(" (closed)");
                 }
             }
         }
@@ -189,7 +204,7 @@ public class Thing implements Serializable {
         return "I don't think the " + this.names[0] + " would agree with you.";
     }
 
-    public String getDrank() {
+    public String getDrank(Player player) {
         return "The " + this.names[0] + " isn't really the sort of thing that you drink.";
     }
 
@@ -249,13 +264,26 @@ class Room extends Thing {
     public Room(String[] names, String description, int capacity) {
         this.description = description;
         this.names = names;
-        this.contents = new Item[capacity];
+        this.contents = new Thing[capacity];
         this.capacity = capacity;
     }
 
     @Override
     public String toString() {
-        return "\u001B[1m" + this.names[0] + "\u001B[22m" + '\n' + this.description;
+        String ans = "\u001B[1m" + this.names[0] + "\u001B[22m" + '\n' + this.description;
+        if (!this.isEmpty())
+            ans += "\n\nHere you see:" + this.listContents().replaceAll("\n", "\n    ");
+        
+        for (int i=0; i<this.contents.length; i++) {
+            if (this.contents[i] == null) {
+                continue;
+            }
+            if (this.contents[i].getClass() == NPC.class) {
+                ans += "\n\n" + this.contents[i].names[0] + " is here.";
+            }
+        }
+
+        return ans;
     }
 
     // I know there's probably a better way to do this, but I don't have the energy to figure it out
@@ -363,7 +391,7 @@ class Item extends Thing {
     public Item(String[] names, String description, int capacity) {
         this.names = names;
         this.description = description;
-        this.contents = new Item[capacity];
+        this.contents = new Thing[capacity];
         this.capacity = capacity;
         
         this.container = false;
@@ -379,13 +407,16 @@ class Player extends Thing {
     
     Room location;
     Game game;
+    double bac;
 
     public Player(Room location, String description, int capacity) {
-        this.contents = new Item[capacity];
+        this.contents = new Thing[capacity];
         this.capacity = capacity;
         this.names = new String[] {"self", "me", "player", "myself"};
         this.description = description;
         this.location = location;
+
+        this.bac = 0.0;
 
         // this.container = true;
         // this.open = true;
@@ -397,11 +428,11 @@ class Player extends Thing {
         Method verb = Player.class.getMethod(action.verb.names[0], Thing.class, Thing.class);
 
         if (action.direct == null) {
-            verb.invoke(this, action.direct, action.indirect);
+            System.out.println(verb.invoke(this, action.direct, action.indirect));
         }
         else if (action.direct.length == 1) {
             if (this.canAccess(action.direct[0])) {
-                verb.invoke(this, action.direct[0], action.indirect);
+                System.out.println(verb.invoke(this, action.direct[0], action.indirect));
             } else {
                 System.out.println("You can't see any " + action.direct[0].names[0] + " here!");
             }
@@ -410,21 +441,21 @@ class Player extends Thing {
             for (int i=0; i<action.direct.length; i++) {
                 if (this.canAccess(action.direct[i])) {
                     System.out.print(action.direct[i].names[0] + ": ");
-                    verb.invoke(this, action.direct[i], action.indirect);
+                    System.out.println(verb.invoke(this, action.direct[i], action.indirect));
                 } else {
                     System.out.println("You can't see any " + action.direct[i].names[0] + " here!");
                 }
             }
         }
 
-        this.doTurn();
+        // this.doTurn(this.game.turns);
         return;
     }
 
     public boolean canAccess(Thing target) {
         ArrayList<Thing> ans = this.location.getAccessibleContents();
         ans.addAll(this.getAccessibleContents());
-        Thing[] accessible = ans.toArray(new Item[0]);
+        Thing[] accessible = ans.toArray(new Thing[0]);
 
         if (target == this) {
             return true;
@@ -447,84 +478,68 @@ class Player extends Thing {
     //     return false;
     // }
 
-    public void hello(Thing direct, Thing indirect) {
-        System.out.println("Hello!");
+    public String hello(Thing direct, Thing indirect) {
+        return "Hello!";
     }
 
-    public void look(Thing direct, Thing indirect) {
+    public String look(Thing direct, Thing indirect) {
         if (direct == null) {
-            System.out.println(this.location.toString());
-            if (!this.location.isEmpty())
-                System.out.println("Here you see:" + this.location.listContents().replaceAll("\n", "\n    "));
-            return;
+            return this.location.toString();
         }
-        System.out.print(direct.description + " ");
+        String ans = "";
+        ans += direct.description + " ";
         if (!direct.container) {
-            System.out.println();
-            return;
+            return ans;
         }
         if (direct.open) {
             if (direct.isEmpty()) {
-                System.out.println("It is open, but empty.");
-                return;
+                return ans + "It is open, but empty.";
             }
-            System.out.println("It is open, revealing:" + direct.listContents().replaceAll("\n", "\n    "));
-            return;
+            return ans + "It is open, revealing:" + direct.listContents().replaceAll("\n", "\n    ");
         }
-        System.out.println("It is closed.");
-        return;
+        return ans + "It is closed.";
     }
 
-    public void inventory(Thing direct, Thing indirect) {
+    public String inventory(Thing direct, Thing indirect) {
         if (this.isEmpty()) {
-            System.out.println("You are empty-handed.");
-            return;
+            return "You are empty-handed.";
         }
-        System.out.println("You are holding:" + this.listContents().replaceAll("\n", "\n    "));
+        return "You are holding:" + this.listContents().replaceAll("\n", "\n    ");
     }
 
-    public void take(Thing direct, Thing indirect) {
+    public String take(Thing direct, Thing indirect) {
         if (!this.hasRoom()) {
-            System.out.println("You can't carry any more.");
-            return;
+            return "You can't carry any more.";
         }
         if (this.contains(direct)) {
-            System.out.println("You are already holding the " + direct.names[0] + ".");
-            return;
+            return "You are already holding the " + direct.names[0] + ".";
         }
-        System.out.println(direct.getTaken(this));  // This uses getter/setter style logic to make overriding easier for custom take behavior.
-        return;
+        return direct.getTaken(this);  // This uses getter/setter style logic to make overriding easier for custom take behavior.
     }
 
-    public void drop(Thing direct, Thing indirect) {
+    public String drop(Thing direct, Thing indirect) {
         if (!this.contains(direct)) {
-            System.out.println("You're not holding the " + direct.names[0] + "!");
-            return;
+            return "You're not holding the " + direct.names[0] + "!";
         }
         if (indirect == null) {
-            System.out.println(direct.getDropped(this, null));
-            return;
+            return direct.getDropped(this, null);
         }
         if (indirect == direct) {
-            System.out.println("Don't be silly.");
-            return;
+            return "Don't be silly.";
         }
         if (!indirect.container) {
-            System.out.println("You are not clever enough to put the " + direct.names[0] + " inside of the " + indirect.names[0] + ".");
-            return;
+            return "You are not clever enough to put the " + direct.names[0] + " inside of the " + indirect.names[0] + ".";
         }
         if (!indirect.open) {
-            System.out.println("The " + indirect.names[0] + " is closed.");
-            return;
+            return "The " + indirect.names[0] + " is closed.";
         }
         if (!indirect.hasRoom()) {
-            System.out.println("The " + indirect.names[0] + " is full.");
-            return;
+            return "The " + indirect.names[0] + " is full.";
         }
-        System.out.println(direct.getDropped(this, indirect));
+        return direct.getDropped(this, indirect);
     }
 
-    public void open(Thing direct, Thing indirect) {
+    public String open(Thing direct, Thing indirect) {
         // if (!direct.container) {
         //     System.out.println("Good luck with that!");
         //     return;
@@ -533,10 +548,10 @@ class Player extends Thing {
         //     System.out.println("The " + direct.names[0] + " is already open.");
         //     return;
         // }
-        System.out.println(direct.getOpened());
+        return direct.getOpened();
     }
 
-    public void close(Thing direct, Thing indirect) {
+    public String close(Thing direct, Thing indirect) {
         // if (!direct.container) {
         //     System.out.println("Good luck with that!");
         //     return;
@@ -545,142 +560,222 @@ class Player extends Thing {
         //     System.out.println("The " + direct.names[0] + " is already closed.");
         //     return;
         // }
-        System.out.println(direct.getClosed());
+        return direct.getClosed();
     }
 
-    public void hit(Thing direct, Thing indirect) {
+    public String hit(Thing direct, Thing indirect) {
         if (!this.contains(indirect)) {
-            System.out.println("You're not holding the " + indirect.names[0] + "!");
-            return;
+            return "You're not holding the " + indirect.names[0] + "!";
         }
-        System.out.println(direct.getHit(indirect));
+        return direct.getHit(indirect);
     }
 
-    public void chuck(Thing direct, Thing indirect) {
+    public String chuck(Thing direct, Thing indirect) {
         if (!this.contains(direct)) {
-            System.out.println("You're not holding the " + direct.names[0] + "!");
-            return;
+            return "You're not holding the " + direct.names[0] + "!";
         }
         if (!this.canAccess(indirect)) {
-            System.out.println("You can't see any " + indirect.names[0] + " here!");
-            return;
+            return "You can't see any " + indirect.names[0] + " here!";
         }
         if (direct == indirect) {
-            System.out.println("Don't be silly.");
-            return;
+            return "Don't be silly.";
         }
-        System.out.println(indirect.getThrownAt(this, direct));
+        return indirect.getThrownAt(this, direct);
     }
 
-    public void smell(Thing direct, Thing indirect) {
-        System.out.println(direct.getSmelled());
+    public String smell(Thing direct, Thing indirect) {
+        return direct.getSmelled();
     }
 
-    public void eat(Thing direct, Thing indirect) {
+    public String eat(Thing direct, Thing indirect) {
         if (!this.contains(direct)) {
-            System.out.println("You're not holding the " + direct.names[0] + "!");
-            return;
+            return "You're not holding the " + direct.names[0] + "!";
         }
-        System.out.println(direct.getEaten());
+        return direct.getEaten();
     }
 
-    public void drink(Thing direct, Thing indirect) {
+    public String drink(Thing direct, Thing indirect) {
         if (!this.contains(direct)) {
-            System.out.println("You're not holding the " + direct.names[0] + "!");
-            return;
+            return "You're not holding the " + direct.names[0] + "!";
         }
-        System.out.println(direct.getDrank());
+        return direct.getDrank(this);
     }
 
-    public void read(Thing direct, Thing indirect) {
-        System.out.println(direct.getRead());
+    public String read(Thing direct, Thing indirect) {
+        return direct.getRead();
     }
 
-    public void jump(Thing direct, Thing indirect) {
+    public String jump(Thing direct, Thing indirect) {
         // if (direct == null) {
-            System.out.println("Weeee!");
+            return "Weeee!";
             // return;
         // }
         // System.out.prinln(direct.getJumped());
     }
 
-    public void kiss(Thing direct, Thing indirect) {
-        System.out.println(direct.getKissed());
+    public String kiss(Thing direct, Thing indirect) {
+        return direct.getKissed();
     }
 
-    public void hug(Thing direct, Thing indirect) {
-        System.out.println(direct.getHugged());
+    public String hug(Thing direct, Thing indirect) {
+        return direct.getHugged();
     }
 
-    public void listen(Thing direct, Thing indirect) {
+    public String listen(Thing direct, Thing indirect) {
         if (direct == null) {
-            System.out.println(this.location.getListened());
-            return;
+            return this.location.getListened();
         }
-        System.out.println(direct.getListened());
+        return direct.getListened();
     }
 
-    public void sing(Thing direct, Thing indirect) {
-        System.out.println("You're in fine voice today!");
+    public String sing(Thing direct, Thing indirect) {
+        return "You're in fine voice today!";
     }
 
-    public void sleep(Thing direct, Thing indirect) {
-        System.out.println("Zzzzzzzz...");
+    public String sleep(Thing direct, Thing indirect) {
+        return "Zzzzzzzz...";
     }
 
-    public void sorry(Thing direct, Thing indirect) {
+    public String sorry(Thing direct, Thing indirect) {
         if (direct == null) {
-            System.out.println("I forgive you.");
-            return;
+            return "I forgive you.";
         }
-        System.out.println(direct.getSorried());
+        return direct.getSorried();
     }
 
-    public void shout(Thing direct, Thing indirect) {
-        System.out.println("Aaaarrrrgggghhhh!");
+    public String shout(Thing direct, Thing indirect) {
+        return "Aaaarrrrgggghhhh!";
     }
 
-    public void taste(Thing direct, Thing indirect) {
-        System.out.println(direct.getTasted());
+    public String taste(Thing direct, Thing indirect) {
+        return direct.getTasted();
     }
 
-    public void touch(Thing direct, Thing indirect) {
-        System.out.println(direct.getTouched());
+    public String touch(Thing direct, Thing indirect) {
+        return direct.getTouched();
     }
 
-    public void lock(Thing direct, Thing indirect) {
+    public String lock(Thing direct, Thing indirect) {
         if (!this.contains(indirect)) {
-            System.out.println("You're not holding the " + indirect.names[0] + "!");
-            return;
+            return "You're not holding the " + indirect.names[0] + "!";
         }
-        System.out.println(direct.getLocked(indirect));
+        return direct.getLocked(indirect);
     }
 
-    public void unlock(Thing direct, Thing indirect) {
+    public String unlock(Thing direct, Thing indirect) {
         if (!this.contains(indirect)) {
-            System.out.println("You're not holding the " + indirect.names[0] + "!");
-            return;
+            return "You're not holding the " + indirect.names[0] + "!";
         }
-        System.out.println(direct.getUnlocked(indirect));
+        return direct.getUnlocked(indirect);
     }
 
-    public void north (Thing direct, Thing indirect) {System.out.print(this.location.north(this));}
-    public void south(Thing direct, Thing indirect) {System.out.print(this.location.south(this));}
-    public void east(Thing direct, Thing indirect) {System.out.print(this.location.east(this));}
-    public void west(Thing direct, Thing indirect) {System.out.print(this.location.west(this));}
-    public void northeast(Thing direct, Thing indirect) {System.out.print(this.location.northeast(this));}
-    public void southeast(Thing direct, Thing indirect) {System.out.print(this.location.southeast(this));}
-    public void southwest(Thing direct, Thing indirect) {System.out.print(this.location.southwest(this));}
-    public void northwest(Thing direct, Thing indirect) {System.out.print(this.location.northwest(this));}
-    public void up(Thing direct, Thing indirect) {System.out.print(this.location.up(this));}
-    public void down(Thing direct, Thing indirect) {System.out.print(this.location.down(this));}
-    public void in(Thing direct, Thing indirect) {System.out.print(this.location.in(this));}
-    public void out(Thing direct, Thing indirect) {System.out.print(this.location.out(this));}
+    public String north (Thing direct, Thing indirect) {return this.location.north(this);}
+    public String south(Thing direct, Thing indirect) {return this.location.south(this);}
+    public String east(Thing direct, Thing indirect) {return this.location.east(this);}
+    public String west(Thing direct, Thing indirect) {return this.location.west(this);}
+    public String northeast(Thing direct, Thing indirect) {return this.location.northeast(this);}
+    public String southeast(Thing direct, Thing indirect) {return this.location.southeast(this);}
+    public String southwest(Thing direct, Thing indirect) {return this.location.southwest(this);}
+    public String northwest(Thing direct, Thing indirect) {return this.location.northwest(this);}
+    public String up(Thing direct, Thing indirect) {return this.location.up(this);}
+    public String down(Thing direct, Thing indirect) {return this.location.down(this);}
+    public String in(Thing direct, Thing indirect) {return this.location.in(this);}
+    public String out(Thing direct, Thing indirect) {return this.location.out(this);}
 }
 
 
 class NPC extends Thing {
 
+    char gender;
+
+    public NPC(String[] names, String description, int capacity) {
+        this.description = description;
+        this.names = names;
+        this.contents = new Thing[capacity];
+    }
+
+    @Override
+    public void doTurn(int turns) {
+        this.handleMovement(turns);
+        super.doTurn(turns);
+    }
+
+    public void handleMovement(int Turns) {
+
+    }
+
+    @Override
+    public String getTaken(Player player) {
+        if (this.gender == 'm') {
+            return "He seems unwilling to come with you.";
+        }
+        return "She seems unwilling to come with you.";
+    }
+
+    @Override
+    public String getSmelled() {
+        return "That's bad manners.";
+    }
+
+    @Override
+    public String getRead() {
+        return "Reading people was never your strong suit.";
+    }
+
+    @Override
+    public String getListened() {
+        if (this.gender == 'm') {
+            return "You hear him breathing.";
+        }
+        return "You hear her breathing.";
+    }
+
+    @Override
+    public String getTasted() {
+        if (this.gender == 'm') {
+            return "He backs away from you, looking uncomfortable.";
+        }
+        return "She backs away from you, looking uncomfortable.";
+    }
+
+    @Override
+    public String getTouched() {
+        if (this.gender == 'm') {
+            return "He backs away from you, looking uncomfortable.";
+        }
+        return "She backs away from you, looking uncomfortable.";
+    }
+}
+
+
+class Beverage extends Item {
+
+    // double abv;
+    boolean full;
+
+    public Beverage(String[] names, String description, int capacity, boolean full) {
+        super(names, description, capacity);
+        // this.abv = abv;
+        this.full = full;
+    }
+
+    @Override
+    public String getDrank(Player player) {
+        if (!this.full) {
+            return "The " + this.names[0] + " is empty.";
+        }
+        player.bac += 0.027;
+        this.full = false;
+        return "Tasty!";
+    }
+
+    @Override
+    public String nameForList() {
+        if (this.full) {
+            return super.nameForList() + " (full)";
+        }
+        return super.nameForList() + " (empty)";
+    }
 }
 
 
@@ -739,6 +834,25 @@ class Game implements Serializable {
         this.turns = 0;
     }
 
+    public String time() {
+        int min = this.turns * 5 + 360;
+        int hour = min / 60;
+        min -= hour*60;
+        hour = hour % 24;
+        
+        String strMin = String.valueOf(min);
+        String strHour = String.valueOf(hour);
+
+        if (min < 10) {
+            strMin = "0" + strMin;
+        }
+        if (hour < 10) {
+            strHour = "0" + strHour;
+        }
+
+        return strHour + ":" + strMin;
+    }
+
     public void updateTopBar() {
         System.out.print("\u001b[s");
         System.out.print("\u001b[H");
@@ -751,7 +865,14 @@ class Game implements Serializable {
             System.out.print(" " + "\u001b[2D");
         }
 
-        System.out.print("test" + this.turns);
+        System.out.print(this.player.location.names[0]);
+        System.out.print("\u001b[1000C\u001b[5D");
+        System.out.print(time());
+        
+        System.out.print("\u001b[18D");
+        System.out.printf("BAC: %.3f", this.player.bac);
+        System.out.print("%");
+
         System.out.print("\u001b[u");
     }
 
